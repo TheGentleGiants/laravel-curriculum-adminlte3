@@ -272,14 +272,6 @@ export default {
             };
         },
         methods: {
-            /*
-                        open(modal, relationKey) {
-                            if (relationKey === 'referenceable'){
-                                this.$modal.show(modal, { 'referenceable_type': 'App\\LogbookEntry', 'referenceable_id': this.entry.id });
-                            } else {
-                                this.$modal.show(modal, { 'subscribable_type': 'App\\LogbookEntry', 'subscribable_id': this.entry.id });
-                            }
-                        },*/
             edit() {
                  this.$modal.show('logbook-entry-modal', { 'id': this.entry.id, 'method': 'patch'});
             },
@@ -287,10 +279,9 @@ export default {
                 try {
                     this.location = (await axios.delete('/logbookEntries/' + this.entry.id)).data.message;
                 } catch (error) {
-                    alert(error);
+                    console.log(error);
                 }
                 this.$parent.$emit('deleteLogbookEntry', this.entry);
-                // location.reload(true);
             },
 
             postDate() {

@@ -220,7 +220,7 @@ return SnappyPdf::loadFile('http://curriculumonline.de')->inline('cur.pdf');
 ```
 
 ### Browser Tests (Dusk)
-Important! Start server in dusk environment.
+Important: Start server in dusk environment.
 
 ```
 php artisan config:clear
@@ -232,6 +232,17 @@ Run browser tests
 ```
 php artisan dusk
 ```
+
+### Browser Tests (Cypress)
+add `.env.cypress` to use alternative config (eg. DB)
+
+
+Run browser tests (see package.json)
+```
+npm run test:cypress
+```
+
+
 
 ### Documentation
 Curriculum uses [saleem-hadad/larecipe](https://github.com/saleem-hadad/larecipe) to provide integrated project documentation. 

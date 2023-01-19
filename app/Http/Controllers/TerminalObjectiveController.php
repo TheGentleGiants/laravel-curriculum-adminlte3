@@ -51,7 +51,7 @@ class TerminalObjectiveController extends Controller
                 'referenceSubscriptions.siblings.referenceable', 'quoteSubscriptions.siblings.quotable', ])
             ->get()->first();
 
-        $repository = Config::where('key', 'repository')->get()->first();
+        $repository = Config::where('key', 'repository')->get()->first() ?? 'false';
 
         return view('objectives.show')
             ->with(compact('objective'))
@@ -221,7 +221,7 @@ class TerminalObjectiveController extends Controller
         }
 
         if (count($siblings) == 0) { //end early
-            return ['message'=> 'no subscriptions'];
+            return ['message' => 'no subscriptions'];
         }
 
         foreach ($siblings as $sibling) {
