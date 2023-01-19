@@ -36,15 +36,14 @@ class GroupsController extends Controller
         abort_unless(\Gate::allows('group_access'), 403);
 
         switch (auth()->user()->role()->id) {
-            case 1:  $groups = Group::with(['grade', 'period', 'organization'])->get();
+            case 1:  $groups = Group::with(['grade', 'period', 'organization']);
                 break;
-            case 4:  $groups = Group::where('organization_id', auth()->user()->current_organization_id)->with(['grade', 'period', 'organization'])->get();
+            case 4:  $groups = Group::where('organization_id', auth()->user()->current_organization_id)->with(['grade', 'period', 'organization']);
                 break;
 
-            default: $groups = auth()->user()->groups()->with(['grade', 'period', 'organization'])->get();
+            default: $groups = auth()->user()->groups()->with(['grade', 'period', 'organization']);
                 break;
         }
-        //$groups = (auth()->user()->role()->id == 1) ? Group::all() : auth()->user()->groups()->get();
 
         $show_gate = \Gate::allows('group_show');
         $edit_gate = \Gate::allows('group_edit');
@@ -282,43 +281,25 @@ class GroupsController extends Controller
             'term' => 'sometimes|string|max:255|nullable',
         ]);
         $page = $input['page'];
-        $resultCount = 25;
-
-        $offset = ($page - 1) * $resultCount;
-
         $term = $input['term'];
 
-        $count = Count($collection->has('groups')->where(
+        $resultCount = 25;
+        $offset = ($page - 1) * $resultCount;
+
+        $entries = $collection->where(
             function($query) use ($field, $term)
             {
-                foreach ((array) $field as $f) {
-                    $query->whereHas('groups', function ($query) use ($term) {
-                        $query->where('title', 'like', $term.'%'); }
-                    );
-                    $query->orWhere($f, 'LIKE', '%' . $term . '%');
-                }
-            })
-            ->orderBy('title')
-            ->select(['id', DB::raw('title as text')])
-            ->get());
-
-
-        $entries = $collection->has('groups')->where(
-            function($query) use ($field, $term)
-            {
-                foreach ((array) $field as $f) {
-                    $query->whereHas('groups', function ($query) use ($term) {
-                        $query->where('title', 'like', $term.'%'); }
-                    );
-                    $query->orWhere($f, 'LIKE', '%' . $term . '%');
-                }
+                $query->whereHas('groups', function ($query) use ($term) {
+                    $query->where('title', 'like', '%' . $term . '%'); }
+                );
             })
             ->orderBy('title')
             ->skip($offset)
             ->take($resultCount)
-            ->select(['id', DB::raw('title as text')])
+            ->select(['organizations.id', DB::raw('title as text')])
             ->get();
 
+        $count = $entries->count();
         $endCount = $offset + $resultCount;
         $morePages = $count > $endCount;
 
@@ -328,6 +309,7 @@ class GroupsController extends Controller
                 "text" => $entry['text'],
                 "children" => Group::where('organization_id', $entry['id'])
                     ->select(['id', DB::raw('title as text')])
+                    ->where('title', 'like', '%' . $term . '%')
                     ->get()
             );
         }
@@ -362,8 +344,9 @@ class GroupsController extends Controller
             );
         } elseif (is_schooladmin()) {
             return $this->select2RequestWithOptGroup(
-                Organization::where('id', auth()->user()->current_organization_id)->select(['id', 'title'])
-            );
+                auth()->user()->organizations()->select(['id', 'title'])
+                //Organization::where('id', auth()->user()->current_organization_id)->select(['id', 'title'])
+            ); //todo: search/filter not working for schooladmins
         } else {
             return getEntriesForSelect2ByCollection(
                 auth()->user()->groups()->orderBy('organization_id', 'desc'),

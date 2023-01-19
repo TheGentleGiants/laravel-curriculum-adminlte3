@@ -237,9 +237,11 @@
                              @click="close()">
                          {{ trans('global.close') }}
                      </button>
-                    <button type="button"
-                            class="btn btn-primary pull-right"
-                            @click="saveToForm()" >
+                    <button
+                        name="medium-create-modal-submit"
+                        type="button"
+                        class="btn btn-primary pull-right"
+                        @click="saveToForm()" >
                         {{ trans('global.save') }}
                     </button>
                 </span>
@@ -265,12 +267,16 @@ export default {
             callbackFunction: null,
             callbackParentComponent: null,
             callbackComponent: null,
+            eventHubCallbackFunctioneventHubCallbackFunction: null,
+            eventHubCallbackFunctionParams: null,
 
             form: new Form({
                 'path': '',
+                'thumb_path': '',
+                'external_id': '',
                 'subscribable_type': null,
                 'subscribable_id': null,
-                'repository': null,
+                'repository': 'local',
                 'public': 0
             }),
             endpoints: {},
@@ -300,9 +306,7 @@ export default {
             total: null
         }
     },
-    created() {
 
-    },
     methods: {
         uploadSubmit(formData) {
             this.currentStatus = STATUS_SAVING;
@@ -369,6 +373,12 @@ export default {
             if (event.params.callbackFunction) {
                 this.callbackFunction = event.params.callbackFunction;
             }
+            if (event.params.eventHubCallbackFunction) {
+                this.eventHubCallbackFunction = event.params.eventHubCallbackFunction;
+            }
+            if (event.params.eventHubCallbackFunctionParams) {
+                this.eventHubCallbackFunctionParams = event.params.eventHubCallbackFunctionParams;
+            }
         },
         setTab(tab){
             this.tab = tab;
@@ -379,7 +389,9 @@ export default {
         beforeClose() {
         },
         saveToForm() {
-            if (this.callbackComponent) {
+            if (this.eventHubCallbackFunction) {
+                this.$eventHub.$emit(this.eventHubCallbackFunction, {'id': this.eventHubCallbackFunctionParams, 'selectedMediumId': this.selectedFiles});
+            } else if (this.callbackComponent) {
                 if (this.callbackParentComponent) {
                     app.__vue__.$refs[this.callbackParentComponent].$refs[this.callbackComponent][0].reload();
                 } else {
@@ -412,21 +424,23 @@ export default {
 
             axios.get(path, { params: { per_page: this.per_page } })
                 .then((response)=>{
-                    this.files = response.data.data;
-                    this.current_page = response.data.current_page;
+                    this.files          = response.data.data;
+                    this.current_page   = response.data.current_page;
                     this.first_page_url = response.data.first_page_url;
-                    this.from = response.data.from;
-                    this.last_page = response.data.last_page;
-                    this.last_page_url = response.data.last_page_url;
-                    this.next_page_url = response.data.next_page_url;
-                    this.path = response.data.path;
-                    this.per_page = response.data.per_page;
-                    this.prev_page_url = response.data.prev_page_url;
-                    this.to = response.data.to;
-                    this.total = response.data.total;
+                    this.from           = response.data.from;
+                    this.last_page      = response.data.last_page;
+                    this.last_page_url  = response.data.last_page_url;
+                    this.next_page_url  = response.data.next_page_url;
+                    this.path           = response.data.path;
+                    this.per_page       = response.data.per_page;
+                    this.prev_page_url  = response.data.prev_page_url;
+                    this.to             = response.data.to;
+                    this.total          = response.data.total;
+                })
+                .catch((e) => {
+                    console.log(e);
                 });
         },
-
     },
     computed: {
         isInitial() {
@@ -444,7 +458,17 @@ export default {
     },
     mounted() {
         this.reset();
+
         this.getFiles();
+
+        this.$eventHub.$on('external_add', (form) => {
+            console.log(form);
+            this.form = form;
+            axios.post('/media?repository=' + this.form.repository, this.form)
+                 .then((response) => {
+                    this.saveToForm()
+                 });
+        });
     },
     components: {
         RepositoryPluginCreate
