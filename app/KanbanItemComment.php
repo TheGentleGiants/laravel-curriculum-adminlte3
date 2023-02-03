@@ -9,11 +9,12 @@ class KanbanItemComment extends Model
 {
     use HasFactory;
 
-    protected $casts = [
-        'created_at' => 'datetime:d.m.Y H:i',
-    ];
-
     protected $guarded = [];
+
+    protected function serializeDate(\DateTimeInterface $date)
+    {
+        return $date->format('d.m.Y H:i');
+    }
 
     public function kanbanItem()
     {
