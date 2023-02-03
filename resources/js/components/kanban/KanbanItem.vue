@@ -243,6 +243,7 @@ export default {
               })
                   .then(res => {
                       this.comments = res.data.data;
+                      this.new_comment = "";
                   })
                   .catch(err => {
                       console.log(err.response);
