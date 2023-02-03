@@ -12,7 +12,7 @@ class MediumController extends Controller
 
     public function __construct(Request $request)
     {
-        $this->repository = $request->filled('repository') ? $request->input('repository') : config('medium.repositories.default');
+        $this->repository = ( $request->filled('repository') &&  $request->input('repository') != "null" )? $request->input('repository') : config('medium.repositories.default');
     }
 
     protected function adapter(string $adapter = null)

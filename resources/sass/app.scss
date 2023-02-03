@@ -112,6 +112,11 @@ tr:hover .vuehover {
     display: block;
 }
 
+#kanban_board_wrapper{
+    background-blend-mode: multiply;
+    background-size: cover;
+}
+
 .kanban-header{
     background-color: white;
     padding: 0.8rem !important;

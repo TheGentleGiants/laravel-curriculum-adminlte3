@@ -60,6 +60,14 @@ class Kanban extends Model
         return $this->transformHexColorToRgba('#F4F4F4');
     }
 
+    public function media()
+    {
+        return $this->belongsTo(
+            'App\Medium',
+            'medium_id'
+        );
+    }
+
     public function isAccessible()
     {
         if (
