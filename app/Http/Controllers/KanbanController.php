@@ -5,9 +5,13 @@ namespace App\Http\Controllers;
 use App\Kanban;
 use App\Medium;
 use App\Organization;
-use Barryvdh\DomPDF\Facade\Pdf;
+use http\Encoding\Stream;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
+use Spatie\Browsershot\Browsershot;
 use Yajra\DataTables\DataTables;
 
 class KanbanController extends Controller
@@ -270,9 +274,12 @@ class KanbanController extends Controller
 
     public function exportKanbanPdf(Kanban $kanban)
     {
-        $pdf = PDF::loadView('exports.kanban.pdf', ['kanban' => $kanban])->setPaper('a4', 'landscape');
-        //return view('exports.kanban.pdf', ['kanban' => $kanban]);
-        return $pdf->download($kanban->title.'.pdf');
+
+        $view = view('exports.kanban.pdf', ['kanban' => $kanban])->render();
+
+        return response()->streamDownload(function () use ($view) {
+            echo Browsershot::html($view)->landscape()->pdf();;
+        }, 'export.pdf');
     }
 
     private function transformHexColorToRgba($color)

@@ -1,24 +1,27 @@
 @extends('layouts.pdf')
 
+<link href="{{ mix('css/app.css') }}" rel="stylesheet"/>
+
 <style>
 
+    html {
+        -webkit-print-color-adjust: exact;
+    }
     body{
-        color: rgb(51, 51, 51)
+        color: rgb(51, 51, 51);
+        font-family: "Helvetica Neue", sans-serif;
+    }
+    .wrapper{
+        display: flex;
+        flex-wrap: wrap;
+        justify-items: stretch;
     }
     .status {
-        display: inline-block;
+        display: flex;
+        flex-direction: column;
         width: 20%;
         vertical-align: top;
         margin-right: 4%;
-    }
-    .col{
-        width: 20%;
-        display: inline-block;
-        vertical-align: top;
-        min-height: 100px;
-    }
-    .row{
-        width: 100%;
     }
 
     .item {
@@ -61,7 +64,6 @@
         font-weight: 400;
         padding: 0.5rem 1rem !important;
         color: #6c757d !important;
-        min-height: 30px;
     }
     .card-footer{
         font-size: 0.5rem;
@@ -83,67 +85,30 @@
 </style>
 
 <h1>{{ $kanban->title }}</h1>
-<?php
-    $stati = $kanban->statuses->chunk(4);
-?>
-@foreach($stati as $chunk)
-    <div class="break-it"></div>
-    <?php
-        $max = 0;
-        foreach ($chunk as $status){
-            $max = max($max, $status->items->count());
-        }
-        ?>
-    @foreach($chunk as $n => $status)
-        <div class="status">
-            <h2>{{ $status->title }}</h2>
-        </div>
-    @endforeach
-    @for($i = 0; $i < $max; $i++)
-        <div class="row">
-        @foreach($chunk as $status)
-            @if($status->items->count() >= $i)
-                <?php
-                    $k = $status->items->get($i);
-                    if(empty($k)):
-                        ?>
-                    <div class="col">
-                        &nbsp;
-                    </div>
-                <?php
-                    continue;
-                    endif;
-                ?>
-                <div class="col">
-                    <div class="item card border">
-                        <div class="card-header" style="background-color: {{ $k->color ?? 'white' }}">
-                            <div class="pb-1" style="line-height: 1">
-                                <b>{{$k->title}}</b><br/>
-                                <span style="font-size: .5rem;margin-top: 0.4rem">
-                                    <i>{{$k->owner->username}}</i> - {{$k->created_at->format('d.m.Y H:i')}}
-                                </span>
-                            </div>
-                        </div>
-
-                            <div class="card-body">
-                                @if($k->description != null)
-                                {{ Str::limit( $k->description, 100, "...") }}
-                                @endif
-                            </div>
-
-                    <!--div class="card-footer px-3 py-2 border-top-0">
-                            {{$k->owner->username}}
-                        </div-->
+<div class="wrapper">
+@foreach($kanban->statuses as $n => $status)
+    <div class="status {{ $n % 4 == 3 ? "break-it":"" }}">
+        <h2>{{ $status->title }}</h2>
+        @foreach($status->items as $k)
+            <div class="item card border">
+                <div class="card-header" style="background-color: {{ $k->color }}">
+                    <div class="pb-1" style="line-height: 1">
+                        <b>{{$k->title}}</b><br/>
+                        <span style="font-size: .5rem;margin-top: 0.4rem">
+                            <i>{{$k->owner->username}}</i> - {{$k->created_at->format('d.m.Y H:i')}}
+                        </span>
                     </div>
                 </div>
-            @else
-                <div class="col">
-                    &nbsp;
+                @if($k->description != null)
+                <div class="card-body">
+                    {!! $k->description  !!}
                 </div>
-
-            @endif
+                @endif
+                <!--div class="card-footer px-3 py-2 border-top-0">
+                    {{$k->owner->username}}
+                </div-->
+            </div>
         @endforeach
-        </div>
-    @endfor
     </div>
 @endforeach
+</div>
